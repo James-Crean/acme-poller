@@ -1,5 +1,7 @@
 # acme-poller
-Secure side poller
+Secure side poller.
+
+This repository contains an example script that demonstrates several general use cases of the poller. The poller source code can be found under the apps directory of the [ACME-web-fe](https://github.com/ACME-OUI/acme-web-fe) inside views.py.
 
 
 ## Usage
