@@ -4,34 +4,42 @@ Secure side poller
 
 ## Usage
 
-Runs can be retrieved from the poller by submitting an HTTP get request with a status query. The poller currently supports the following statuses: 
-* **new** (Returns every job with a status of 'new')
-* **in_progress** (Returns every job with a status of 'in_progress')
-* **complete** (Returns every job with a status of 'complete')
-* **failed** (Returns every job with a status of 'failed')
-* **next** (Returns only the oldest job with the status of new)
-* **all** (Returns every job currently known to the poller)
+Runs can be retrieved from the poller by submitting an HTTP get request with a parameter named 'request'. The poller currently supports the following requests:
 
-Example URL: `http://127.0.0.1/poller/?status=next`
+Example URL: `http://127.0.0.1/poller/update/?request=next`
 
-The response is encoded in JSON format and has the following fields:
+* **all**
+    * *GET: ()* -> Returns every job
+    * *GET: (user)* -> Returns every job for that user
+    *  *POST: (status)* -> Updates every job to the new status
+    *  *POST: (user, status)* -> Updates every job for a user to the new status
+* **new**
+    * *GET: ()* -> Returns every job with a status of 'new'
+    * *GET: (user)* -> Returns every job for that user with a status of 'new'
+    *  *POST: (user, config_options{} )* -> Creates a new job for that user
+* **in_progress**
+    * *GET: ()* -> Returns every job with a status of 'in_progress'
+    * *GET: (user)* -> Returns every job with a status of 'in_progress' for that user
+    * *POST: (job_id)* -> Sets a job to 'in_progress'
+* **complete**
+    * *GET: ()* -> Returns every job with a status of 'complete'
+    * *GET: (user)* -> Returns every job with a status of 'complete' for that user
+    * *POST: (job_id)* -> Sets a job to 'complete'
+* **failed**
+    * *GET: ()* -> Returns every job with a status of 'failed'
+    * *GET: (user)* -> Returns every job with a status of 'failed' for that user
+    * *POST: (job_id)* -> Sets a job to 'failed'
+* **next**
+    * *GET: ()* -> Returns the next job to be run.
+* **job**
+    * *GET: ()* -> Returns a specific job.
 
-* id 
-* user
-* runspec
-* casename
-* mppwidth
-* stop_option
-* stop_n
-* walltime
-* mach
-* compset
-* res
-* project
-* compiler
+All requests that return objects will return a status of 200, with a single empty object if no runs were found.
+E.g. A request for the 'next' run on an empty queue will return an empty object with status 200.
 
-Updating the status of a run in the poller is done via an HTTP POST request. The poller current expects that a post request will contain a CSRF Token, the id of the run being updated and the new status as a string. The CSRF token can be retrieved at the /poller/ base path. Due to the nature of the Django CSRF token, the 'Referer' header should also be set for any post requests. A 503 status code will be sent if Django can not validate the request. For example usage please refer to the poller.py example file. 
+
+The response is encoded in JSON format and each run is an object that contains the run id, user, and run status in addition to the individual fields that describe the run parameters.  
 
 ## Error Checking
 
-The poller attempts to send back appropriate HTTP status codes. A status of 200 indicates a successful interaction, but be aware that a response of 200 does not imply that a run existed to send back. Response contents may be empty.  
+The poller attempts to send back appropriate HTTP status codes. A status of 200 indicates a successful interaction, while 400 indicates an issue with the request, and 500 indicates a server error.  
